@@ -1,0 +1,6 @@
+name "fastaq"
+description "Fasta and FastQ library"
+authors "Steven Schveighoffer"
+copyright "Copyright © 2017, Steven Schveighoffer"
+license "boost"
+dependency "iopipe" version="~>0.0.2"
