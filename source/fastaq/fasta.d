@@ -173,7 +173,7 @@ unittest
     auto input = ">EntryId1 field1|field2|field3\n" ~
         "ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT\n" ~
         "ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT\n" ~
-        "ACGTACGTACGTACGTACGTACGT\n" ~
+        "ACGTACGTACGTACGTACGTACG\n" ~
         "\n" ~
         ">EntryId2 field4|field5\n" ~
         "ACGT";
@@ -187,7 +187,7 @@ unittest
     assert(item1.fields[2].value(tokenizer.window) == "field3");
     auto seq = item1.sequence.value(tokenizer.window);
     assert(seq[0] == 'A');
-    assert(seq[$-1] == 'T');
+    assert(seq[$-1] == 'G');
     import std.range: cycle;
     import std.ascii: isWhite;
     import std.algorithm: filter, startsWith;
