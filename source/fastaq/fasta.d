@@ -1,5 +1,5 @@
 /**
- * proof of concept for using iopipe to parse fasta/Q data
+ * proof of concept for using iopipe to parse fasta data
  *
  * Format:
  * >Entry1_ID header field1|header field2|...
@@ -17,13 +17,25 @@
  *
  * Some characteristics:
  *
- * - Entry_ID is >[[:alphanumeric:]]. Where '>' marks the entry start. In this post I have to put an escape character (\) to make the '>' visible.
+ * - Entry_ID is >[[:alphanumeric:]]. Where '>' marks the entry start.
  * - Headers may contain annotation information separated by some delimiter (i.e. | in this case).
  * - Entry ID and header is a single line, which does not contain newline characters.
  * - Sequence under the header line is [ATCGN\n]* (Perl regex).
- * - A fasta file can be plain-text or gzip compressed. 
+ * - A fasta file can be plain-text or gzip compressed.
  */
-module fastaq.parser;
+
+/**
+ * TODO
+ * Implement
+ * filter (i.e. by pattern on header),
+ * writer
+ * writer with line wrapper for width of N nucleotides.
+ * reverse complement
+ *
+ */
+
+
+module fastaq.fasta;
 
 import iopipe.traits;
 import iopipe.textpipe;
@@ -161,7 +173,7 @@ unittest
     auto input = ">EntryId1 field1|field2|field3\n" ~
         "ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT\n" ~
         "ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT\n" ~
-        "ACGTACGTACGTACGTACGTACGT\n" ~
+        "ACGTACGTACGTACGTACGTACG\n" ~
         "\n" ~
         ">EntryId2 field4|field5\n" ~
         "ACGT";
@@ -175,7 +187,7 @@ unittest
     assert(item1.fields[2].value(tokenizer.window) == "field3");
     auto seq = item1.sequence.value(tokenizer.window);
     assert(seq[0] == 'A');
-    assert(seq[$-1] == 'T');
+    assert(seq[$-1] == 'G');
     import std.range: cycle;
     import std.ascii: isWhite;
     import std.algorithm: filter, startsWith;
