@@ -41,7 +41,9 @@ import iopipe.traits;
 import iopipe.textpipe;
 private import std.traits;
 private import std.range.primitives;
-private import std.algorithm : find, splitter;
+private import std.algorithm : find, splitter, filter;
+private import std.ascii: isWhite;
+private import std.conv: to;
 private import std.string : stripLeft, stripRight;
 
 struct BufRef
@@ -85,7 +87,7 @@ struct FastaToken
         result.fields = new B[fields.length];
         foreach(i, ref f; fields)
             result.fields[i] = f.value(buf);
-        result.sequence = sequence.value(buf);
+        result.sequence = sequence.value(buf).filter!(a =>!a.isWhite).to!string;
         return result;
     }
 }
@@ -190,7 +192,6 @@ unittest
     assert(seq[0] == 'A');
     assert(seq[$-1] == 'G');
     import std.range: cycle;
-    import std.ascii: isWhite;
     import std.algorithm: filter, startsWith;
     assert(cycle("ACGT").startsWith(seq.filter!(a => !a.isWhite)));
 
@@ -201,7 +202,6 @@ unittest
     assert(item2.fields[0].value(tokenizer.window) == "field4");
     assert(item2.fields[1].value(tokenizer.window) == "field5");
     seq = item2.sequence.value(tokenizer.window);
-    import std.conv: to;
     assert(seq.filter!(a => !a.isWhite).to!string == "ACGTACG", "Expected: ACGTACG, got: " ~ seq);
 
     auto item3 = tokenizer.nextToken;
