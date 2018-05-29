@@ -170,13 +170,14 @@ auto tokenParser(Chain, char header = '>', char fieldsep = '|')(Chain c) if (isI
 
 unittest
 {
-    auto input = ">EntryId1 field1|field2|field3\n" ~
-        "ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT\n" ~
-        "ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT\n" ~
-        "ACGTACGTACGTACGTACGTACG\n" ~
+    immutable auto input = ">EntryId1 field1|field2|field3\n" ~
+        "ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT  \n" ~
+        "ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT    \n" ~
+        "ACGTACGTACGTACGTACGTACG \n" ~
         "\n" ~
         ">EntryId2 field4|field5\n" ~
-        "ACGT";
+        " ACGT \n" ~
+        " ACG \n";
 
     auto tokenizer = input.tokenParser;
     auto item1 = tokenizer.nextToken;
@@ -200,7 +201,7 @@ unittest
     assert(item2.fields[0].value(tokenizer.window) == "field4");
     assert(item2.fields[1].value(tokenizer.window) == "field5");
     seq = item2.sequence.value(tokenizer.window);
-    assert(seq == "ACGT");
+    assert(seq == "ACGTACG", "Expected: ACGTACG, got: " ~ seq);
 
     auto item3 = tokenizer.nextToken;
     assert(item3.entryid.length == 0);
@@ -215,5 +216,5 @@ unittest
     assert(concrete.fields[0] == "field4");
     assert(concrete.fields[1] == "field5");
     seq = concrete.sequence;
-    assert(seq == "ACGT");
+    assert(seq == "ACGTACG", "Expected: ACGTACG, got: " ~ seq);
 }
