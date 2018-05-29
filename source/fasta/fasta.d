@@ -201,7 +201,8 @@ unittest
     assert(item2.fields[0].value(tokenizer.window) == "field4");
     assert(item2.fields[1].value(tokenizer.window) == "field5");
     seq = item2.sequence.value(tokenizer.window);
-    assert(seq == "ACGTACG", "Expected: ACGTACG, got: " ~ seq);
+    import std.conv: to;
+    assert(seq.filter!(a => !a.isWhite).to!string == "ACGTACG", "Expected: ACGTACG, got: " ~ seq);
 
     auto item3 = tokenizer.nextToken;
     assert(item3.entryid.length == 0);
