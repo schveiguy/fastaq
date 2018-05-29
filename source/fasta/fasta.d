@@ -105,12 +105,14 @@ auto tokenParser(Chain, char header = '>', char fieldsep = '|')(Chain c) if (isI
     {
         ChainType chain;
         size_t pos;
+        alias chain this;
 
         FastaToken nextToken()
         {
-            // pos must start with a start identifier
             if(pos == chain.window.length)
+                // reaches the end of the stream
                 return FastaToken.init;
+            // pos must start with a start identifier
             assert(chain.window[pos] == header);
             // the header is the current line
             FastaToken result;
@@ -118,12 +120,12 @@ auto tokenParser(Chain, char header = '>', char fieldsep = '|')(Chain c) if (isI
             if(!fields.empty)
             {
                 auto firstElemSize = fields.front.length;
-                auto space = fields.front.find(' ');
-                result.entryid = BufRef(pos + 1, firstElemSize - space.length - 1);
-                if(space.length > 0)
+                auto firstField = fields.front.find(' ');
+                result.entryid = BufRef(pos + 1, firstElemSize - firstField.length - 1);
+                if(firstField.length > 0)
                 {
-                    space = space.stripLeft;
-                    result.fields ~= BufRef(pos + (firstElemSize - space.length), space.length);
+                    firstField = firstField.stripLeft;
+                    result.fields ~= BufRef(pos + (firstElemSize - firstField.length), firstField.length);
                 }
                 pos += firstElemSize;
 
@@ -141,7 +143,7 @@ auto tokenParser(Chain, char header = '>', char fieldsep = '|')(Chain c) if (isI
             auto seqStart = pos;
             while(chain.extend(0) != 0)
             {
-                if(chain.window[pos] == '>')
+                if(chain.window[pos] == header)
                     break;
                 pos = chain.window.length;
             }
@@ -153,8 +155,6 @@ auto tokenParser(Chain, char header = '>', char fieldsep = '|')(Chain c) if (isI
             result.endPos = pos;
             return result;
         }
-
-        alias chain this;
 
         void release(size_t elements)
         {
