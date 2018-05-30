@@ -4,3 +4,16 @@ authors "Steven Schveighoffer"
 copyright "Copyright © 2017, Steven Schveighoffer"
 license "boost"
 dependency "iopipe" version="~>0.0.2"
+
+subPackage {
+           name "fasta"
+           targetType "library"
+           sourcePaths "source/fasta"
+           dependency "iopipe" version="~>0.0.2"
+           }
+subPackage {
+           name "fastq"
+           targetType "library"
+           sourcePaths "source/fastq"
+           dependency "iopipe" version="~>0.0.2"
+           }

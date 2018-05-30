@@ -41,7 +41,8 @@ import iopipe.traits;
 import iopipe.textpipe;
 private import std.traits;
 private import std.range.primitives;
-private import std.algorithm : find, splitter;
+private import std.algorithm : find, splitter, filter;
+private import std.conv: to;
 private import std.string : stripLeft, stripRight;
 
 struct BufRef
@@ -105,12 +106,14 @@ auto tokenParser(Chain, char header = '>', char fieldsep = '|')(Chain c) if (isI
     {
         ChainType chain;
         size_t pos;
+        alias chain this;
 
         FastaToken nextToken()
         {
-            // pos must start with a start identifier
             if(pos == chain.window.length)
+                // reaches the end of the stream
                 return FastaToken.init;
+            // pos must start with a start identifier
             assert(chain.window[pos] == header);
             // the header is the current line
             FastaToken result;
@@ -118,12 +121,12 @@ auto tokenParser(Chain, char header = '>', char fieldsep = '|')(Chain c) if (isI
             if(!fields.empty)
             {
                 auto firstElemSize = fields.front.length;
-                auto space = fields.front.find(' ');
-                result.entryid = BufRef(pos + 1, firstElemSize - space.length - 1);
-                if(space.length > 0)
+                auto firstField = fields.front.find(' ');
+                result.entryid = BufRef(pos + 1, firstElemSize - firstField.length - 1);
+                if(firstField.length > 0)
                 {
-                    space = space.stripLeft;
-                    result.fields ~= BufRef(pos + (firstElemSize - space.length), space.length);
+                    firstField = firstField.stripLeft;
+                    result.fields ~= BufRef(pos + (firstElemSize - firstField.length), firstField.length);
                 }
                 pos += firstElemSize;
 
@@ -141,7 +144,7 @@ auto tokenParser(Chain, char header = '>', char fieldsep = '|')(Chain c) if (isI
             auto seqStart = pos;
             while(chain.extend(0) != 0)
             {
-                if(chain.window[pos] == '>')
+                if(chain.window[pos] == header)
                     break;
                 pos = chain.window.length;
             }
@@ -153,8 +156,6 @@ auto tokenParser(Chain, char header = '>', char fieldsep = '|')(Chain c) if (isI
             result.endPos = pos;
             return result;
         }
-
-        alias chain this;
 
         void release(size_t elements)
         {
@@ -170,13 +171,14 @@ auto tokenParser(Chain, char header = '>', char fieldsep = '|')(Chain c) if (isI
 
 unittest
 {
-    auto input = ">EntryId1 field1|field2|field3\n" ~
+    immutable auto input = ">EntryId1 field1|field2|field3\n" ~
         "ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT\n" ~
         "ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT\n" ~
-        "ACGTACGTACGTACGTACGTACG\n" ~
+        "ACGTACGTACGTACGTACGTACG \n" ~
         "\n" ~
-        ">EntryId2 field4|field5\n" ~
-        "ACGT";
+        ">EntryId2 field4|field5|length > 3\n" ~
+        " ACGT \n" ~
+        " ACG \n";
 
     auto tokenizer = input.tokenParser;
     auto item1 = tokenizer.nextToken;
@@ -196,11 +198,14 @@ unittest
     auto item2 = tokenizer.nextToken;
 
     assert(item2.entryid.value(tokenizer.window) == "EntryId2");
-    assert(item2.fields.length == 2);
+    assert(item2.fields.length == 3);
     assert(item2.fields[0].value(tokenizer.window) == "field4");
-    assert(item2.fields[1].value(tokenizer.window) == "field5");
+    auto field5 = item2.fields[1].value(tokenizer.window);
+    assert(field5 == "field5", "got: " ~  field5);
+    auto fieldspecial = item2.fields[2].value(tokenizer.window);
+    assert(fieldspecial == "length > 3", "Expect 'length > 3' got: " ~ fieldspecial);
     seq = item2.sequence.value(tokenizer.window);
-    assert(seq == "ACGT");
+    assert(seq.filter!(a => !a.isWhite).to!string == "ACGTACG", "Expected: ACGTACG, got: " ~ seq);
 
     auto item3 = tokenizer.nextToken;
     assert(item3.entryid.length == 0);
@@ -211,9 +216,9 @@ unittest
     auto concrete = item2.value(tokenizer.window);
 
     assert(concrete.entryid == "EntryId2");
-    assert(concrete.fields.length == 2);
+    assert(concrete.fields.length == 3);
     assert(concrete.fields[0] == "field4");
     assert(concrete.fields[1] == "field5");
     seq = concrete.sequence;
-    assert(seq == "ACGT");
+    assert(seq.filter!(a => !a.isWhite).to!string == "ACGTACG", "Expected: ACGTACG, got: " ~ seq);
 }
