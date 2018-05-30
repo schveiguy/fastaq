@@ -14,6 +14,6 @@ subPackage {
 subPackage {
            name "fastq"
            targetType "library"
-           sourcePaths "source/fast q"
+           sourcePaths "source/fastq"
            dependency "iopipe" version="~>0.0.2"
            }
