@@ -29,7 +29,6 @@
  * Implement
  * filter (i.e. by pattern on header),
  * writer
- * writer with line wrapper for width of N nucleotides.
  * reverse complement
  *
  */
