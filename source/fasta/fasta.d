@@ -43,7 +43,7 @@ private import std.traits;
 private import std.range.primitives;
 private import std.algorithm : find, splitter, filter;
 private import std.conv: to;
-private import std.string : stripLeft, stripRight;
+private import std.string : stripLeft, stripRight, strip;
 
 struct BufRef
 {
@@ -113,6 +113,12 @@ auto tokenParser(Chain, char header = '>', char fieldsep = '|')(Chain c) if (isI
             if(pos == chain.window.length)
                 // reaches the end of the stream
                 return FastaToken.init;
+            // deal with empty lines at the beginning
+            while (chain.window[0 .. $].strip.length == 0)
+              {
+                pos += chain.window.length;
+                chain.extend(0);
+              }
             // pos must start with a start identifier
             assert(chain.window[pos] == header);
             // the header is the current line
@@ -171,7 +177,7 @@ auto tokenParser(Chain, char header = '>', char fieldsep = '|')(Chain c) if (isI
 
 unittest
 {
-    immutable auto input = ">EntryId1 field1|field2|field3\n" ~
+    immutable auto input = "\n" ~ ">EntryId1 field1|field2|field3\n" ~
         "ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT\n" ~
         "ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT\n" ~
         "ACGTACGTACGTACGTACGTACG \n" ~
