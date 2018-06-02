@@ -29,7 +29,6 @@
  * Implement
  * filter (i.e. by pattern on header),
  * writer
- * writer with line wrapper for width of N nucleotides.
  * reverse complement
  *
  */
@@ -43,26 +42,8 @@ private import std.traits;
 private import std.range.primitives;
 private import std.algorithm : find, splitter, filter;
 private import std.conv: to;
-private import std.string : stripLeft, stripRight;
-
-struct BufRef
-{
-    // position within the buffer of the starting reference
-    size_t pos;
-    // length of the reference
-    size_t length;
-    auto value(B)(B buf)
-    {
-        assert(pos <= buf.length);
-        assert(pos + length <= buf.length);
-        return buf[pos .. pos + length];
-    }
-
-    void release(size_t elements)
-    {
-        pos -= elements;
-    }
-}
+private import std.string : stripLeft, stripRight, strip;
+import fastaq.common.utils;
 
 struct FastaToken
 {
@@ -166,12 +147,17 @@ auto tokenParser(Chain, char header = '>', char fieldsep = '|')(Chain c) if (isI
 
     // prime the lines item
     lines.extend(0);
+    while (lines.window.strip.empty)
+      {
+        lines.release(lines.window.length);
+        lines.extend(0);
+      }
     return Result(lines);
 }
 
 unittest
 {
-    immutable auto input = ">EntryId1 field1|field2|field3\n" ~
+    immutable auto input = "\n" ~ ">EntryId1 field1|field2|field3\n" ~
         "ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT\n" ~
         "ACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGTACGT\n" ~
         "ACGTACGTACGTACGTACGTACG \n" ~
