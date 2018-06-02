@@ -112,12 +112,6 @@ auto tokenParser(Chain, char header = '>', char fieldsep = '|')(Chain c) if (isI
             if(pos == chain.window.length)
                 // reaches the end of the stream
                 return FastaToken.init;
-            // deal with empty lines at the beginning
-            while (chain.window[0 .. $].strip.length == 0)
-              {
-                pos += chain.window.length;
-                chain.extend(0);
-              }
             // pos must start with a start identifier
             assert(chain.window[pos] == header);
             // the header is the current line
@@ -171,6 +165,11 @@ auto tokenParser(Chain, char header = '>', char fieldsep = '|')(Chain c) if (isI
 
     // prime the lines item
     lines.extend(0);
+    while (lines.window.strip.empty)
+      {
+        lines.release(lines.window.length);
+        lines.extend(0);
+      }
     return Result(lines);
 }
 

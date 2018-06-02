@@ -143,12 +143,6 @@ auto tokenParser(Chain,
         // pos must start with a start identifier
         if(pos == chain.window.length)
           return FastqToken.init;
-        // Empty line
-        while (chain.window[0 .. $].strip.length == 0)
-          {
-            pos += chain.window.length;
-            chain.extend(0);
-          }
         logf("Pos: %s, window length: %s, window: %s", pos, chain.window.length, chain.window );
         assert(chain.window[pos] == '@', "Got this: " ~ chain.window[pos]);
         // the header is the current line
@@ -156,7 +150,6 @@ auto tokenParser(Chain,
         FastqToken result;
         // parse header line
         auto lazyArr = chain.window[pos .. $].stripRight.splitter(fieldsep);
-        pragma(msg, typeof(lazyArr).stringof);
         if(!lazyArr.empty)
           {
             auto firstElem = lazyArr.front;
@@ -225,7 +218,7 @@ auto tokenParser(Chain,
             logf("Finish Rec, Pos: %s, window length: %s, window: %s", pos, chain.window.length, chain.window );
           }
         chain.extend(0);
-         return result;
+        return result;
       }
 
       void release(size_t elements)
@@ -237,6 +230,12 @@ auto tokenParser(Chain,
 
     // prime the lines item
     lines.extend(0);
+    // deal with empty lines at the beginning
+    while (lines.window.strip.empty)
+      {
+        lines.release(lines.window.length);
+        lines.extend(0);
+      }
     return Result(lines);
   }
 
