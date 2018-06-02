@@ -56,25 +56,7 @@ private import std.conv: to;
 private import std.ascii: isWhite;
 private import std.string : stripLeft, stripRight, strip;
 private import std.experimental.logger;
-
-struct BufRef
-{
-  // position within the buffer of the starting reference
-  size_t pos;
-  // length of the reference
-  size_t length;
-  auto value(B)(B buf)
-  {
-    assert(pos <= buf.length);
-    assert(pos + length <= buf.length);
-    return buf[pos .. pos + length];
-  }
-
-  void release(size_t elements)
-  {
-    pos -= elements;
-  }
-}
+import fastaq.common.utils;
 
 struct FastqToken
 {

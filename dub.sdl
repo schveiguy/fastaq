@@ -8,12 +8,12 @@ dependency "iopipe" version="~>0.0.2"
 subPackage {
            name "fasta"
            targetType "library"
-           sourcePaths "source/fasta"
+           sourcePaths "source/fasta" "source/common"
            dependency "iopipe" version="~>0.0.2"
            }
 subPackage {
            name "fastq"
            targetType "library"
-           sourcePaths "source/fastq"
+           sourcePaths "source/fastq" "source/common"
            dependency "iopipe" version="~>0.0.2"
            }

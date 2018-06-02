@@ -43,25 +43,7 @@ private import std.range.primitives;
 private import std.algorithm : find, splitter, filter;
 private import std.conv: to;
 private import std.string : stripLeft, stripRight, strip;
-
-struct BufRef
-{
-    // position within the buffer of the starting reference
-    size_t pos;
-    // length of the reference
-    size_t length;
-    auto value(B)(B buf)
-    {
-        assert(pos <= buf.length);
-        assert(pos + length <= buf.length);
-        return buf[pos .. pos + length];
-    }
-
-    void release(size_t elements)
-    {
-        pos -= elements;
-    }
-}
+import fastaq.common.utils;
 
 struct FastaToken
 {
